@@ -1,10 +1,11 @@
 const MysqlManager = require("./MysqlManager.js");
 
 const mysqlManager = new MysqlManager({
-  host: "www.webrk.com",
+  host: "webrk.com",
   user: "admin_cosmicrace",
   password: "cosmicrace!@#",
   database: "admin_cosmicrace",
+  connectTimeout: 3000000,
 });
 
 const express = require("express");
@@ -42,16 +43,16 @@ app.post("/registration", (req, res) => {
         // No such user exist -> insert to database.
         mysqlManager
           .query(
-            "INSERT INTO GameUsers (`username`, `password`, `email`, `coinsAmount`) VALUES (?,?,?,?)",
-            [req.body.username, req.body.password, req.body.email, 0]
+            "INSERT INTO GameUsers (`username`, `password`, `email`) VALUES (?,?,?)",
+            [req.body.username, req.body.password, req.body.email]
           )
           .then((result) => {
             res.status(200).send("Sign up successfully!");
           })
-          .catch((err) => res.status(403).send("Error occured!"));
+          .catch((err) => res.status(403).send(err));
       }
     }, res)
-    .catch((err) => res.status(403).send("Error occured!"), res);
+    .catch((err) => res.status(403).send(err), res);
 });
 
 /*
@@ -68,7 +69,7 @@ app.post("/login", (req, res) => {
   }
 
   let auth =
-    "SELECT Count(username) AS num FROM gameusers WHERE username = ? AND password = ?";
+    "SELECT Count(username) AS num FROM GameUsers WHERE username = ? AND password = ?";
 
   mysqlManager
     .query(auth, [username, password])
@@ -81,6 +82,6 @@ app.post("/login", (req, res) => {
       }
     })
     .catch((err) => {
-      res.status(401).send("Error occured!");
+      res.status(401).send(err);
     });
 });

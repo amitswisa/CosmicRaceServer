@@ -3,10 +3,9 @@ const mysql = require("mysql");
 class MysqlManager {
   constructor(config) {
     this.connection = mysql.createConnection(config);
-
     try {
       this.connection.connect();
-      console.log("Mysql is connected!");
+      console.log("Mysql is connected.");
     } catch (err) {
       console.log("Error occured in database.");
     }
