@@ -1,7 +1,7 @@
 const MysqlManager = require("./MysqlManager.js");
 
 const mysqlManager = new MysqlManager({
-  host: "webrk.com",
+  host: "www.webrk.com",
   user: "admin_cosmicrace",
   password: "cosmicrace!@#",
   database: "admin_cosmicrace",
@@ -32,7 +32,7 @@ app.post("/registration", (req, res) => {
 
   // Validate if username is already exist.
   mysqlManager
-    .query("SELECT Count(username) as num FROM gameusers where username = ?", [
+    .query("SELECT Count(username) as num FROM GameUsers where username = ?", [
       req.body.username,
     ])
     .then((result) => {
@@ -42,8 +42,8 @@ app.post("/registration", (req, res) => {
         // No such user exist -> insert to database.
         mysqlManager
           .query(
-            "INSERT INTO gameusers (`username`, `password`, `email`) VALUES (?,?,?)",
-            [req.body.username, req.body.password, req.body.email]
+            "INSERT INTO GameUsers (`username`, `password`, `email`, `coinsAmount`) VALUES (?,?,?,?)",
+            [req.body.username, req.body.password, req.body.email, 0]
           )
           .then((result) => {
             res.status(200).send("Sign up successfully!");
