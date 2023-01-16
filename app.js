@@ -1,7 +1,15 @@
 const MysqlManager = require("./MysqlManager.js");
+
+const mysqlManager = new MysqlManager({
+  host: "webrk.com",
+  user: "admin_cosmicrace",
+  password: "cosmicrace!@#",
+  database: "admin_cosmicrace",
+});
+
 const express = require("express");
 const cors = require("cors");
-const bcrypt = require("bcrypt");
+//const bcrypt = require("bcrypt");
 const bodyParser = require("body-parser");
 
 const app = express();
@@ -11,17 +19,12 @@ app.use(bodyParser.json());
 // Server Port.
 const port = 6829;
 
-const mysqlManager = new MysqlManager({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "cosmicrace_db",
-});
-
+// Start server and make it listen to port {port}
 app.listen(port, () => {
   console.log("Server listening on port 6829");
 });
 
+// API Methods
 app.post("/registration", (req, res) => {
   // check if any parameter is missing.
   if (!req.body.username || !req.body.password || !req.body.email) {
@@ -45,8 +48,8 @@ app.post("/registration", (req, res) => {
           )
           .then((result) => {
             res.status(200).send("Sign up successfully!");
-          }, res)
-          .catch((err) => res.status(403).send("Error occured!"), res);
+          })
+          .catch((err) => res.status(403).send("Error occured!"));
       }
     }, res)
     .catch((err) => res.status(403).send("Error occured!"), res);
@@ -57,4 +60,28 @@ app.post("/registration", (req, res) => {
     # Req body: Json of username and password.
     # Response: TRUE || FALSE -> cardentials.
 */
-app.post("/login", (req, res) => {});
+app.post("/login", (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+
+  if (!username || !password) {
+    res.status(401).send("Please send all data required.");
+  }
+
+  let auth =
+    "SELECT Count(username) AS num FROM gameusers WHERE username = ? AND password = ?";
+
+  mysqlManager
+    .query(auth, [username, password])
+    .then((result) => {
+      // Check if user exist and login is approved.
+      if (result[0].num !== 1) {
+        res.status(401).send("User doesn't exist!");
+      } else {
+        res.status(200).send("Logged in successfully!");
+      }
+    })
+    .catch((err) => {
+      res.status(401).send("Error occured!");
+    });
+});
