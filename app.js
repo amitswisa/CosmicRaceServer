@@ -1,20 +1,24 @@
-const MysqlManager = require("./MysqlManager.js");
+const express = require("express");
+const cors = require("cors");
+const mysql = require("mysql2");
+const bodyParser = require("body-parser");
 
-const mysqlManager = new MysqlManager({
-  host: "webrk.com",
+// Pool credentials.
+const pool = mysql.createPool({
+  host: "38.242.139.88",
   user: "admin_cosmicrace",
   password: "cosmicrace!@#",
   database: "admin_cosmicrace",
-  connectTimeout: 3000000,
+  connectionLimit: 15,
 });
-
-const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use((req, res, next) => {
+  req.db = pool;
+  next();
+});
 
 // Server Port.
 const port = 6829;
@@ -24,7 +28,7 @@ app.listen(port, () => {
   console.log("Server listening on port 6829");
 });
 
-// API Methods
+// // API Methods
 app.post("/registration", (req, res) => {
   // check if any parameter is missing.
   if (!req.body.username || !req.body.password || !req.body.email) {
@@ -32,27 +36,35 @@ app.post("/registration", (req, res) => {
   }
 
   // Validate if username is already exist.
-  mysqlManager
-    .query("SELECT Count(username) as num FROM GameUsers where username = ?", [
-      req.body.username,
-    ])
-    .then((result) => {
-      if (result[0].num === 1) {
-        res.status(403).send("Username already exist in our database.");
-      } else {
-        // No such user exist -> insert to database.
-        mysqlManager
-          .query(
-            "INSERT INTO GameUsers (`username`, `password`, `email`) VALUES (?,?,?)",
-            [req.body.username, req.body.password, req.body.email]
-          )
-          .then((result) => {
-            res.status(200).send("Sign up successfully!");
-          })
-          .catch((err) => res.status(403).send(err));
+  req.db.getConnection((err, connection) => {
+    if (err) return res.status(500).send(err);
+
+    connection.query(
+      "SELECT Count(username) as num FROM GameUsers where username = ?",
+      [req.body.username],
+      (err, result) => {
+        if (err) {
+          connection.release();
+          return res.status(500).send(err);
+        }
+
+        // Check if username already exist.
+        if (result[0].num !== 0)
+          return res.status(401).send("This username isnt available.");
+
+        connection.query(
+          "INSERT INTO GameUsers (`username`,`password`,`email`,`coinsAmount`) VALUES (?,?,?,?)",
+          [req.body.username, req.body.password, req.body.email, 0],
+          (err, result) => {
+            connection.release();
+            if (err) return res.status(500).send(err);
+
+            return res.status(200).send("Your account created succesfully!");
+          }
+        );
       }
-    }, res)
-    .catch((err) => res.status(403).send(err), res);
+    );
+  });
 });
 
 /*
@@ -68,20 +80,32 @@ app.post("/login", (req, res) => {
     res.status(401).send("Please send all data required.");
   }
 
-  let auth =
-    "SELECT Count(username) AS num FROM GameUsers WHERE username = ? AND password = ?";
+  req.db.getConnection((err, connection) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).send(err);
+    }
 
-  mysqlManager
-    .query(auth, [username, password])
-    .then((result) => {
-      // Check if user exist and login is approved.
-      if (result[0].num !== 1) {
-        res.status(401).send("User doesn't exist!");
-      } else {
-        res.status(200).send("Logged in successfully!");
+    let auth =
+      "SELECT Count(username) AS num FROM GameUsers WHERE username = ? AND password = ?";
+
+    connection.query(auth, [username, password], (err, result) => {
+      connection.release();
+      if (err) {
+        console.log(err);
+        return res.status(500).send(err);
       }
-    })
-    .catch((err) => {
-      res.status(401).send(err);
+
+      if (result[0].num !== 1)
+        return res
+          .status(401)
+          .send("Login credentials arent exist in our database..");
+
+      return res.status(200).send("Logged in succesfully!");
     });
+  });
+});
+
+app.get("/test", (req, res) => {
+  return res.status(200).send("Hello :)");
 });
