@@ -2,6 +2,7 @@ require("dotenv").config();
 const config = require("./config/config");
 const express = require("express");
 const cors = require("cors");
+const fs = require("fs");
 const mysql = require("mysql2");
 const jwt = require("jsonwebtoken");
 const bodyParser = require("body-parser");
@@ -13,19 +14,16 @@ const pool = mysql.createPool({
   user: config.dbuser,
   password: config.dbpassword,
   database: config.dbdatabase,
+  port: 3306,
   connectionLimit: 15,
+  ssl: { ca: fs.readFileSync("./certifications/DigiCertGlobalRootCA.crt.pem") },
 });
 
 /* Some use for the app variable */
 
 const app = express();
 /*  */
-app.use(
-  cors({
-    origin: "http://localhost:3001",
-    credentials: true,
-  })
-);
+app.use(cors());
 
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -107,7 +105,7 @@ app.post("/login", (req, res) => {
     }
 
     let auth =
-      "SELECT Count(username) AS num, id as id, username as username FROM GameUsers WHERE username = ? AND password = ?";
+      "SELECT Count(username) AS num, id, username as username FROM GameUsers WHERE username = ? AND password = ?";
 
     connection.query(auth, [username, password], (err, result) => {
       // Release coonection back to the pool.
