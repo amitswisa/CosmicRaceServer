@@ -191,7 +191,8 @@ app.post("/update-user-data", authorization, (req, res) => {
       });
     }
 
-    const query = "SELECT coinsAmount FROM GameUsers WHERE username = ?";
+    const query =
+      "SELECT coinsAmount, wins, loses FROM GameUsers WHERE username = ?";
 
     connection.query(query, [username], (err, result) => {
       // Release coonection back to the pool.
@@ -213,6 +214,8 @@ app.post("/update-user-data", authorization, (req, res) => {
       res.status(200).send({
         success: true,
         coins: result[0].coinsAmount,
+        wins: result[0].wins,
+        loses: result[0].loses,
       });
 
       return;
