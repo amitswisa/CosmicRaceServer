@@ -18,6 +18,7 @@ module.exports = async (request, response, next) => {
     // pass down functionality to the endpoint
     next();
   } catch (error) {
+    console.log(error);
     response.status(401).json({
       error: "Not autherized!",
     });
