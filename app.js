@@ -219,3 +219,45 @@ app.post("/update-user-data", authorization, (req, res) => {
     });
   });
 });
+
+app.post("/change-password", authorization, (req, res) => {
+  const newPassword = req.body.password;
+
+  if (newPassword.length < 6)
+    return res.status(500).send({
+      message: "Information missing.",
+      success: false,
+    });
+
+  req.db.getConnection((err, connection) => {
+    // Connection failed.
+    if (err) {
+      return res.status(500).send({
+        success: false,
+        message: err,
+      });
+    }
+
+    const query = "UPDATE GameUsers SET password = ? WHERE id = ?";
+
+    connection.query(
+      query,
+      [newPassword, req.userInfo.userId],
+      (err, result) => {
+        connection.release();
+
+        if (err) {
+          return res.status(500).send({
+            success: false,
+            message: err,
+          });
+        }
+
+        return res.status(200).send({
+          success: true,
+          message: "Password has been changed!",
+        });
+      }
+    );
+  });
+});
