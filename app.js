@@ -72,8 +72,8 @@ app.post("/registration", (req, res) => {
           });
 
         connection.query(
-          "INSERT INTO GameUsers (`username`,`password`,`email`,`coinsAmount`) VALUES (?,?,?,?)",
-          [req.body.username, req.body.password, req.body.email, 1000],
+          "INSERT INTO GameUsers (`username`,`password`,`email`,`coinsAmount`, `loses`, `wins`) VALUES (?,?,?,?,?,?)",
+          [req.body.username, req.body.password, req.body.email, 1000, 0, 0],
           (err, userInsertResult) => {
             if (err) {
               connection.release();
