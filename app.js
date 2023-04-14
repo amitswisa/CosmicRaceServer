@@ -167,8 +167,8 @@ app.post("/login", (req, res) => {
         message: "Sign in succesfull",
         success: true,
         token: token,
-        characters: {
-          character: {
+        characters: [
+          {
             characterID: result[0].characterID,
             characterName: result[0].CharacterName,
             level: result[0].level,
@@ -176,7 +176,7 @@ app.post("/login", (req, res) => {
             wins: result[0].winCount,
             loses: result[0].loseCount,
           },
-          character: {
+          {
             characterID: result[1].characterID,
             characterName: result[1].CharacterName,
             level: result[1].level,
@@ -184,7 +184,7 @@ app.post("/login", (req, res) => {
             wins: result[1].winCount,
             loses: result[1].loseCount,
           },
-          character: {
+          {
             characterID: result[2].characterID,
             characterName: result[2].CharacterName,
             level: result[2].level,
@@ -192,7 +192,7 @@ app.post("/login", (req, res) => {
             wins: result[2].winCount,
             loses: result[2].loseCount,
           },
-          character: {
+          {
             characterID: result[3].characterID,
             characterName: result[3].CharacterName,
             level: result[3].level,
@@ -200,7 +200,7 @@ app.post("/login", (req, res) => {
             wins: result[3].winCount,
             loses: result[3].loseCount,
           },
-        },
+        ],
       });
 
       return;
