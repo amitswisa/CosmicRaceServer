@@ -132,7 +132,8 @@ app.post("/login", (req, res) => {
       });
     }
 
-    let auth = "SELECT * FROM GameUsers WHERE username = ? AND password = ?";
+    let auth =
+      "SELECT * FROM GameUsers GU JOIN userscharactersdata UCD ON (UCD.userid = GU.id) WHERE username = ? AND password = ?";
 
     connection.query(auth, [username, password], (err, result) => {
       // Release coonection back to the pool.
@@ -166,6 +167,12 @@ app.post("/login", (req, res) => {
         message: "Sign in succesfull",
         success: true,
         token: token,
+        characters: {
+          1: result[0].stats,
+          2: result[1].stats,
+          3: result[2].stats,
+          4: result[3].stats,
+        },
       });
 
       return;
