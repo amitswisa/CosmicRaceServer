@@ -133,7 +133,7 @@ app.post("/login", (req, res) => {
     }
 
     let auth =
-      "SELECT * FROM GameUsers GU JOIN userscharactersdata UCD ON (UCD.userid = GU.id) WHERE username = ? AND password = ?";
+      "SELECT * FROM GameUsers GU JOIN userscharactersdata UCD ON (UCD.userid = GU.id) Join GameCharacters GC ON (GC.id = UCD.characterID) WHERE username = ? AND password = ?";
 
     connection.query(auth, [username, password], (err, result) => {
       // Release coonection back to the pool.
@@ -168,10 +168,38 @@ app.post("/login", (req, res) => {
         success: true,
         token: token,
         characters: {
-          1: result[0].stats,
-          2: result[1].stats,
-          3: result[2].stats,
-          4: result[3].stats,
+          character: {
+            characterID: result[0].characterID,
+            characterName: result[0].CharacterName,
+            level: result[0].level,
+            characterStats: result[0].stats,
+            wins: result[0].winCount,
+            loses: result[0].loseCount,
+          },
+          character: {
+            characterID: result[1].characterID,
+            characterName: result[1].CharacterName,
+            level: result[1].level,
+            characterStats: result[1].stats,
+            wins: result[1].winCount,
+            loses: result[1].loseCount,
+          },
+          character: {
+            characterID: result[2].characterID,
+            characterName: result[2].CharacterName,
+            level: result[2].level,
+            characterStats: result[2].stats,
+            wins: result[2].winCount,
+            loses: result[2].loseCount,
+          },
+          character: {
+            characterID: result[3].characterID,
+            characterName: result[3].CharacterName,
+            level: result[3].level,
+            characterStats: result[3].stats,
+            wins: result[3].winCount,
+            loses: result[3].loseCount,
+          },
         },
       });
 
