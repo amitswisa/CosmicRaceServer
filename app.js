@@ -167,6 +167,7 @@ app.post("/login", (req, res) => {
         message: "Sign in succesfull",
         success: true,
         token: token,
+        coins: result[0].coinsAmount,
         characters: [
           {
             characterID: result[0].characterID,
