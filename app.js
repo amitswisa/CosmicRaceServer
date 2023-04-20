@@ -79,7 +79,7 @@ app.post("/registration", (req, res) => {
               connection.release();
               return res.status(500).send({
                 success: false,
-                message: err,
+                message: err.message,
               });
             }
 
@@ -93,7 +93,7 @@ app.post("/registration", (req, res) => {
               if (err)
                 return res.status(500).send({
                   success: false,
-                  message: err,
+                  message: err.message,
                 });
 
               return res.status(200).send({
