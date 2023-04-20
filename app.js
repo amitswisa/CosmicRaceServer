@@ -72,8 +72,8 @@ app.post("/registration", (req, res) => {
           });
 
         connection.query(
-          "INSERT INTO GameUsers (`username`,`password`,`email`,`coinsAmount`, `loses`, `wins`) VALUES (?,?,?,?,?,?)",
-          [req.body.username, req.body.password, req.body.email, 1000, 0, 0],
+          "INSERT INTO GameUsers (`username`,`password`,`email`,`level`,`coinsAmount`, `loses`, `wins`) VALUES (?,?,?,?,?,?,?)",
+          [req.body.username, req.body.password, req.body.email, 1, 1000, 0, 0],
           (err, userInsertResult) => {
             if (err) {
               connection.release();
@@ -84,7 +84,7 @@ app.post("/registration", (req, res) => {
             }
 
             const characterQuery =
-              "INSERT INTO userscharactersdata (userID, characterID, stats, visualData) SELECT User.id, gc.id, gc.defaultStats, gc.defaultVisualData FROM gamecharacters gc, GameUsers User WHERE User.username = '" +
+              "INSERT INTO userscharactersdata (userID, characterID, level, xp, magicPoints, speed, power, defense) SELECT User.id, gc.id, gc.level, gc.xp, gc.magicPoints, gc.speed, gc.power, gc.defense FROM gamecharacters gc, GameUsers User WHERE User.username = '" +
               req.body.username +
               "'";
             connection.query(characterQuery, [], (err, userCharacterInsert) => {
