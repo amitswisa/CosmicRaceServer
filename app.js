@@ -60,7 +60,7 @@ app.post("/registration", (req, res) => {
           connection.release();
           return res.status(500).send({
             success: false,
-            message: err,
+            message: err.message,
           });
         }
 
@@ -84,7 +84,7 @@ app.post("/registration", (req, res) => {
             }
 
             const characterQuery =
-              "INSERT INTO userscharactersdata (userID, characterID, level, xp, magicPoints, speed, power, defense) SELECT User.id, gc.id, gc.level, gc.xp, gc.magicPoints, gc.speed, gc.power, gc.defense FROM gamecharacters gc, GameUsers User WHERE User.username = '" +
+              "INSERT INTO userscharactersdata (userID, characterID, level, xp, magicPoints, speed, jump, power, defense) SELECT User.id, gc.id, gc.level, gc.xp, gc.magicPoints, gc.speed, gc.jump, gc.power, gc.defense FROM gamecharacters gc, GameUsers User WHERE User.username = '" +
               req.body.username +
               "'";
             connection.query(characterQuery, [], (err, userCharacterInsert) => {
@@ -166,6 +166,7 @@ app.post("/login", (req, res) => {
       res.status(200).send({
         message: "Sign in succesfull",
         success: true,
+        username: username,
         token: token,
         coins: result[0].coinsAmount,
         characters: [
@@ -173,7 +174,12 @@ app.post("/login", (req, res) => {
             characterID: result[0].characterID,
             characterName: result[0].CharacterName,
             level: result[0].level,
-            characterStats: result[0].stats,
+            xp: result[0].xp,
+            magicPoints: result[0].magicPoints,
+            speed: result[0].speed,
+            power: result[0].power,
+            defense: result[0].defense,
+            jump: result[0].jump,
             wins: result[0].winCount,
             loses: result[0].loseCount,
           },
@@ -181,7 +187,12 @@ app.post("/login", (req, res) => {
             characterID: result[1].characterID,
             characterName: result[1].CharacterName,
             level: result[1].level,
-            characterStats: result[1].stats,
+            xp: result[1].xp,
+            magicPoints: result[1].magicPoints,
+            speed: result[1].speed,
+            power: result[1].power,
+            defense: result[1].defense,
+            jump: result[0].jump,
             wins: result[1].winCount,
             loses: result[1].loseCount,
           },
@@ -189,7 +200,12 @@ app.post("/login", (req, res) => {
             characterID: result[2].characterID,
             characterName: result[2].CharacterName,
             level: result[2].level,
-            characterStats: result[2].stats,
+            xp: result[2].xp,
+            magicPoints: result[2].magicPoints,
+            speed: result[2].speed,
+            power: result[2].power,
+            defense: result[2].defense,
+            jump: result[0].jump,
             wins: result[2].winCount,
             loses: result[2].loseCount,
           },
@@ -197,7 +213,12 @@ app.post("/login", (req, res) => {
             characterID: result[3].characterID,
             characterName: result[3].CharacterName,
             level: result[3].level,
-            characterStats: result[3].stats,
+            xp: result[3].xp,
+            magicPoints: result[3].magicPoints,
+            speed: result[3].speed,
+            power: result[3].power,
+            defense: result[3].defense,
+            jump: result[0].jump,
             wins: result[3].winCount,
             loses: result[3].loseCount,
           },
