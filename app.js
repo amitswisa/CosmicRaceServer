@@ -133,7 +133,7 @@ app.post("/login", (req, res) => {
     }
 
     let auth =
-      "SELECT * FROM GameUsers GU JOIN userscharactersdata UCD ON (UCD.userid = GU.id) Join GameCharacters GC ON (GC.id = UCD.characterID) WHERE username = ? AND password = ?";
+      "SELECT GU.username. GU.level, GU.coinsAmount, UCD.characterID, GC.CharacterName, UCD.level, UCD.xp, UCD.magicPoints, UCD.speed, UCD.jump, UCD.power, UCD.defense, UCD.winCount, UCD.loseCount FROM GameUsers GU JOIN userscharactersdata UCD ON (UCD.userid = GU.id) Join GameCharacters GC ON (GC.id = UCD.characterID) WHERE username = ? AND password = ?";
 
     connection.query(auth, [username, password], (err, result) => {
       // Release coonection back to the pool.
