@@ -168,6 +168,7 @@ app.post("/login", (req, res) => {
         success: true,
         username: username,
         token: token,
+        level: result[0].level,
         coins: result[0].coinsAmount,
         characters: [
           {
