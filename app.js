@@ -34,20 +34,21 @@ app.use((req, res, next) => {
 
 const allowedIPs = ["20.87.213.225", "85.65.217.100"]; // List of allowed IP addresses
 
-// Middleware function to check if the request is coming from an allowed IP address
-const allowOnlyFromIPs = (req, res, next) => {
-  const clientIP = req.ip; // Get the IP address of the client making the request
-  if (allowedIPs.includes(clientIP)) {
-    // If the client's IP is in the allowed IPs list, proceed to the endpoint
-    next();
-  } else {
-    // If the client's IP is not in the allowed IPs list, send a 403 Forbidden response
-    res.status(403).send({
-      message: "unauthorized access",
-    });
-  }
-};
+const allowOnlyFromIPs = () => {
+  return (req, res, next) => {
+    const xForwardedFor = req.headers["x-forwarded-for"];
+    const remoteAddress = req.connection.remoteAddress;
+    const clientIP = xForwardedFor
+      ? xForwardedFor.split(",")[0]
+      : remoteAddress;
 
+    if (allowedIPs.includes(clientIP)) {
+      next();
+    } else {
+      res.sendStatus(403);
+    }
+  };
+};
 // Start server and make it listen to port {port}
 app.listen(process.env.SERVER_PORT, () => {
   console.log("Server listening on port " + process.env.SERVER_PORT);
