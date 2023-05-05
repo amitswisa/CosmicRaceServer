@@ -32,6 +32,22 @@ app.use((req, res, next) => {
   req.next();
 });
 
+const allowedIPs = ["20.87.213.225"]; // List of allowed IP addresses
+
+// Middleware function to check if the request is coming from an allowed IP address
+const allowOnlyFromIPs = (req, res, next) => {
+  const clientIP = req.ip; // Get the IP address of the client making the request
+  if (allowedIPs.includes(clientIP)) {
+    // If the client's IP is in the allowed IPs list, proceed to the endpoint
+    next();
+  } else {
+    // If the client's IP is not in the allowed IPs list, send a 403 Forbidden response
+    res.status(403).send({
+      message: "unauthorized access",
+    });
+  }
+};
+
 // Start server and make it listen to port {port}
 app.listen(process.env.SERVER_PORT, () => {
   console.log("Server listening on port " + process.env.SERVER_PORT);
@@ -320,5 +336,31 @@ app.post("/change-password", authorization, (req, res) => {
         });
       }
     );
+  });
+});
+
+// Post request -> receives from game server username & character id.
+// return: Character Data.
+app.post("/fetchCharacterData", allowOnlyFromIPs, (req, res) => {
+  // Params from json in request body.
+  const username = req.body.username;
+  const characterId = req.body.characterId;
+
+  if(username === "" || characterId === "")
+  {
+    return res.status(404).({
+      message: "Missing information.",
+    });
+  }
+
+  // Fetch data from database about player.
+  // req.db.getConnection((err, connection) => {
+  //   if (err) return res.status(500).send(err);
+
+  //   connection.query("SELECT ")
+  // });
+
+  res.status(200).send({
+    message: "Work!",
   });
 });
