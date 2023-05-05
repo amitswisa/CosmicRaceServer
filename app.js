@@ -32,7 +32,7 @@ app.use((req, res, next) => {
   req.next();
 });
 
-const allowedIPs = ["20.87.213.225"]; // List of allowed IP addresses
+const allowedIPs = ["20.87.213.225", '85.65.217.100']; // List of allowed IP addresses
 
 // Middleware function to check if the request is coming from an allowed IP address
 const allowOnlyFromIPs = (req, res, next) => {
