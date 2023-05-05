@@ -341,7 +341,7 @@ app.post("/change-password", authorization, (req, res) => {
 
 // Post request -> receives from game server username & character id.
 // return: Character Data.
-app.post("/fetchCharacterData", allowOnlyFromIPs, (req, res) => {
+app.post("/fetchCharacterData", (req, res) => {
   // Params from json in request body.
   const username = req.body.username;
   const characterId = req.body.characterId;
