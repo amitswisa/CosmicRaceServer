@@ -32,23 +32,6 @@ app.use((req, res, next) => {
   req.next();
 });
 
-const allowedIPs = ["20.87.213.225", "85.65.217.100"]; // List of allowed IP addresses
-
-// Middleware function to check if the request is coming from an allowed IP address
-const allowOnlyFromIPs = (req, res, next) => {
-  const xForwardedFor = req.headers["x-forwarded-for"];
-  const remoteAddress = req.connection.remoteAddress;
-  const clientIP = xForwardedFor ? xForwardedFor.split(",")[0] : remoteAddress;
-
-  if (allowedIPs.includes(clientIP)) {
-    // If the client's IP is in the allowed IPs list, proceed to the endpoint
-    next();
-  } else {
-    // If the client's IP is not in the allowed IPs list, send a 403 Forbidden response
-    res.sendStatus(403);
-  }
-};
-
 // Start server and make it listen to port {port}
 app.listen(process.env.SERVER_PORT, () => {
   console.log("Server listening on port " + process.env.SERVER_PORT);
@@ -342,25 +325,44 @@ app.post("/change-password", authorization, (req, res) => {
 
 // Post request -> receives from game server username & character id.
 // return: Character Data.
-app.post("/fetchCharacterData", allowOnlyFromIPs, (req, res) => {
+// ****TODO - Add authorization by IP or JWT.
+app.post("/fetchCharacterData", (req, res) => {
   // Params from json in request body.
-  const username = req.body.username;
+  const userId = req.body.userId;
   const characterId = req.body.characterId;
 
-  if (username === "" || characterId === "") {
+  if (userId === "" || characterId === "") {
     return res.status(400).send({
       message: "Missing information.",
     });
   }
 
-  // Fetch data from database about player.
-  // req.db.getConnection((err, connection) => {
-  //   if (err) return res.status(500).send(err);
+  //Fetch data from database about player.
+  req.db.getConnection((err, connection) => {
+    if (err) return res.status(500).send(err);
 
-  //   connection.query("SELECT ")
-  // });
+    let fetchQuery =
+      "SELECT GU.id, GU.username, UCD.characterID, GC.CharacterName, UCD.level, UCD.xp, UCD.magicPoints, UCD.speed, UCD.jump, UCD.power, UCD.defense, UCD.winCount, UCD.loseCount FROM GameUsers GU JOIN userscharactersdata UCD ON (UCD.userid = GU.id AND UCD.characterID = ?) Join GameCharacters GC ON (GC.id = UCD.characterID) WHERE GU.id = ?";
 
-  res.status(200).send({
-    message: "Work!",
+    connection.query(fetchQuery, [characterId, userId], (err, result) => {
+      if (err) return res.status(500).send(err);
+
+      return res.status(200).send({
+        message: "OK",
+        success: true,
+        username: result[0].username,
+        characterID: result[0].characterID,
+        characterName: result[0].CharacterName,
+        level: result[0].level,
+        xp: result[0].xp,
+        magicPoints: result[0].magicPoints,
+        speed: result[0].speed,
+        power: result[0].power,
+        defense: result[0].defense,
+        jump: result[0].jump,
+        wins: result[0].winCount,
+        loses: result[0].loseCount,
+      });
+    });
   });
 });
