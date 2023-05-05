@@ -325,29 +325,35 @@ app.post("/change-password", authorization, (req, res) => {
 
 // Post request -> receives from game server username & character id.
 // return: Character Data.
-// ****TODO - Add authorization by IP or JWT.
-app.post("/fetchCharacterData", (req, res) => {
+// TODO - Add authorization by IP or JWT.
+app.post("/fetchcharacterdata", (req, res) => {
   // Params from json in request body.
-  const userId = req.body.userId;
+  const userid = req.body.userid;
   const characterId = req.body.characterId;
 
-  if (userId === "" || characterId === "") {
+  if (
+    userid === "" ||
+    characterId === "" ||
+    userid === undefined ||
+    characterId === undefined
+  ) {
     return res.status(400).send({
       message: "Missing information.",
     });
   }
 
-  //Fetch data from database about player.
+  // Fetch data from database about player.
   req.db.getConnection((err, connection) => {
     if (err) return res.status(500).send(err);
 
     let fetchQuery =
-      "SELECT GU.id, GU.username, UCD.characterID, GC.CharacterName, UCD.level, UCD.xp, UCD.magicPoints, UCD.speed, UCD.jump, UCD.power, UCD.defense, UCD.winCount, UCD.loseCount FROM GameUsers GU JOIN userscharactersdata UCD ON (UCD.userid = GU.id AND UCD.characterID = ?) Join GameCharacters GC ON (GC.id = UCD.characterID) WHERE GU.id = ?";
+      "SELECT GU.id, GU.username, UCD.characterID, GC.CharacterName, UCD.level, UCD.xp, UCD.magicPoints, UCD.speed, UCD.jump, UCD.power, UCD.defense, UCD.winCount, UCD.loseCount FROM GameUsers GU JOIN userscharactersdata UCD ON (UCD.userid = GU.id) Join GameCharacters GC ON (GC.id = UCD.characterID) WHERE GU.id = ? AND UCD.characterID = ?";
 
-    connection.query(fetchQuery, [characterId, userId], (err, result) => {
+    connection.query(fetchQuery, [userid, characterId], (err, result) => {
+      connection.release();
       if (err) return res.status(500).send(err);
 
-      return res.status(200).send({
+      res.status(200).send({
         message: "OK",
         success: true,
         username: result[0].username,
