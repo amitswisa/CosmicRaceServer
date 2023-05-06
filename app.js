@@ -166,6 +166,7 @@ app.post("/login", (req, res) => {
       res.status(200).send({
         message: "Sign in succesfull",
         success: true,
+        userid: result[0].id,
         username: username,
         token: token,
         level: result[0].level,
