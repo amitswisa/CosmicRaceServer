@@ -375,43 +375,59 @@ app.post("/fetchcharacterdata", (req, res) => {
 });
 
 app.post("/PlayerSummaries", (req, res) => {
-  // Params from json in request body.
-  const playerName = req.body.playerName;
-  const position = req.body.position;
-  const coinsCollected = req.body.coinsCollected;
+  const summaries = req.body;
 
-  if (
-    playerName === "" ||
-    position === "" ||
-    coinsCollected < 0 ||
-    playerName === undefined ||
-    position === undefined ||
-    coinsCollected === undefined
-  ) {
+  if (!Array.isArray(summaries)) {
     return res.status(400).send({
-      message: "Missing information.",
+      message: "Expected an array of player summaries.",
     });
   }
 
-  // Fetch data from database about player.
+  // Fetch data from database about each player.
   req.db.getConnection((err, connection) => {
-    if (err) return res.status(500).send(err);
+    if (err) {
+      connection.release();
+      return res.status(500).send(err);
+    }
 
     let fetchQuery =
-      "UPDATE gameusers SET coinsAmount = coinsAmount + ? WHERE username = ?";
+      "UPDATE GameUsers SET coinsAmount = coinsAmount + ? WHERE username = ?";
 
-    connection.query(
-      fetchQuery,
-      [coinsCollected, playerName],
-      (err, result) => {
+    // Using a counter to check how many summaries are processed.
+    let processedCount = 0;
+
+    summaries.forEach((summary) => {
+      const playerName = summary.playerName;
+      const position = summary.position;
+      const coinsCollected = summary.coinsCollected;
+
+      if (!playerName || position === undefined || coinsCollected < 0) {
         connection.release();
-        if (err) return res.status(500).send(err);
-
-        res.status(200).send({
-          message: "OK",
-          success: true,
+        return res.status(400).send({
+          message: "Invalid data in one of the player summaries.",
         });
       }
-    );
+
+      connection.query(
+        fetchQuery,
+        [coinsCollected, playerName],
+        (err, result) => {
+          processedCount++;
+          if (err) {
+            connection.release();
+            return res.status(500).send(err);
+          }
+
+          // If all summaries are processed, send the response.
+          if (processedCount === summaries.length) {
+            connection.release();
+            res.status(200).send({
+              message: "OK",
+              success: true,
+            });
+          }
+        }
+      );
+    });
   });
 });
