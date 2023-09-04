@@ -373,3 +373,45 @@ app.post("/fetchcharacterdata", (req, res) => {
     });
   });
 });
+
+app.post("/PlayerSummaries", (req, res) => {
+  // Params from json in request body.
+  const playerName = req.body.playerName;
+  const position = req.body.position;
+  const coinsCollected = req.body.coinsCollected;
+
+  if (
+    playerName === "" ||
+    position === "" ||
+    coinsCollected < 0 ||
+    playerName === undefined ||
+    position === undefined ||
+    coinsCollected === undefined
+  ) {
+    return res.status(400).send({
+      message: "Missing information.",
+    });
+  }
+
+  // Fetch data from database about player.
+  req.db.getConnection((err, connection) => {
+    if (err) return res.status(500).send(err);
+
+    let fetchQuery =
+      "UPDATE gameusers SET coinsAmount = coinsAmount + ? WHERE username = ?";
+
+    connection.query(
+      fetchQuery,
+      [coinsCollected, playerName],
+      (err, result) => {
+        connection.release();
+        if (err) return res.status(500).send(err);
+
+        res.status(200).send({
+          message: "OK",
+          success: true,
+        });
+      }
+    );
+  });
+});
