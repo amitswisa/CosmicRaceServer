@@ -392,7 +392,7 @@ app.post("/PlayerSummaries", (req, res) => {
     }
 
     let fetchQuery =
-      "UPDATE GameUsers SET coinsAmount = coinsAmount + ? WHERE username = ?";
+      "UPDATE GameUsers SET xp = CASE WHEN xp + ? <= 100 THEN xp + ? ELSE 0 END, level = CASE WHEN xp + ? > 100 THEN level + 1 ELSE level END, coinsAmount = coinsAmount + ? WHERE username = ?";
 
     // Using a counter to check how many summaries are processed.
     let processedCount = 0;
@@ -409,9 +409,21 @@ app.post("/PlayerSummaries", (req, res) => {
         });
       }
 
+      let xpAdded = 0;
+      switch (position) {
+        case 1:
+          xpAdded = 10;
+          break;
+        case 2:
+          xpAdded = 5;
+          break;
+        default:
+          xpAdded = 0;
+      }
+
       connection.query(
         fetchQuery,
-        [coinsCollected, playerName],
+        [xpAdded, coinsCollected, playerName],
         (err, result) => {
           processedCount++;
           if (err) {
