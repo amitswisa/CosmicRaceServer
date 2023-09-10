@@ -384,63 +384,87 @@ app.post("/PlayerSummaries", (req, res) => {
     });
   }
 
-  // Fetch data from database about each player.
   req.db.getConnection((err, connection) => {
     if (err) {
-      connection.release();
       return res.status(500).send(err);
     }
 
-    let fetchQuery =
-      "UPDATE GameUsers SET xp = CASE WHEN xp + ? <= 100 THEN xp + ? ELSE 0 END, level = CASE WHEN xp + ? > 100 THEN level + 1 ELSE level END, coinsAmount = coinsAmount + ? WHERE username = ?";
-
-    // Using a counter to check how many summaries are processed.
-    let processedCount = 0;
-
-    summaries.forEach((summary) => {
-      const playerName = summary.playerName;
-      const position = summary.position;
-      const coinsCollected = summary.coinsCollected;
-
-      if (!playerName || position === undefined || coinsCollected < 0) {
+    connection.beginTransaction((err) => {
+      if (err) {
         connection.release();
-        return res.status(400).send({
-          message: "Invalid data in one of the player summaries.",
-        });
+        return res.status(500).send(err);
       }
 
-      let xpAdded = 0;
-      switch (position) {
-        case 1:
-          xpAdded = 10;
-          break;
-        case 2:
-          xpAdded = 5;
-          break;
-        default:
-          xpAdded = 0;
-      }
+      let processedCount = 0;
 
-      connection.query(
-        fetchQuery,
-        [xpAdded, xpAdded, xpAdded, coinsCollected, playerName],
-        (err, result) => {
-          processedCount++;
-          if (err) {
-            connection.release();
-            return res.status(500).send(err);
-          }
+      summaries.forEach((summary) => {
+        const playerName = summary.playerName;
+        const position = summary.position;
+        const coinsCollected = summary.coinsCollected;
 
-          // If all summaries are processed, send the response.
-          if (processedCount === summaries.length) {
+        if (!playerName || position === undefined || coinsCollected < 0) {
+          connection.rollback(() => {
             connection.release();
-            res.status(200).send({
-              message: "OK",
-              success: true,
+            return res.status(400).send({
+              message: "Invalid data in one of the player summaries.",
             });
-          }
+          });
         }
-      );
+
+        let xpAdded = 0;
+        switch (position) {
+          case 1:
+            xpAdded = 10;
+            break;
+          case 2:
+            xpAdded = 5;
+            break;
+          default:
+            xpAdded = 0;
+        }
+
+        connection.query(
+          `UPDATE GameUsers
+            SET 
+              xp = CASE 
+                WHEN xp + ? <= 100 THEN xp + ?
+                ELSE 0
+              END,
+              level = CASE 
+                WHEN xp + ? > 100 THEN level + 1
+                ELSE level
+              END,
+              coinsAmount = coinsAmount + ?
+            WHERE username = ?`,
+          [xpAdded, xpAdded, xpAdded, coinsCollected, playerName],
+          (err, result) => {
+            processedCount++;
+
+            if (err) {
+              connection.rollback(() => {
+                connection.release();
+                return res.status(500).send(err);
+              });
+            }
+
+            if (processedCount === summaries.length) {
+              connection.commit((err) => {
+                if (err) {
+                  connection.rollback(() => {
+                    connection.release();
+                    return res.status(500).send(err);
+                  });
+                }
+                connection.release();
+                res.status(200).send({
+                  message: "OK",
+                  success: true,
+                });
+              });
+            }
+          }
+        );
+      });
     });
   });
 });
