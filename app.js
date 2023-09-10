@@ -423,7 +423,7 @@ app.post("/PlayerSummaries", (req, res) => {
 
       connection.query(
         fetchQuery,
-        [xpAdded, coinsCollected, playerName],
+        [xpAdded, xpAdded, xpAdded, coinsCollected, playerName],
         (err, result) => {
           processedCount++;
           if (err) {
